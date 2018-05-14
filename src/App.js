@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { debounce } from "lodash"; // Imported debounce
+import { debounce } from "lodash";
 import * as SwiftypeAppSearch from "swiftype-app-search-javascript";
 import "./App.css";
 
@@ -10,7 +10,11 @@ const client = SwiftypeAppSearch.createClient({
 });
 
 class App extends Component {
+  // requestSequence is used to generate sequential requestIds
+  requestSequence = 0;
+
   state = {
+    lastCompleted: 0, // A new state property to track the last completed requestId
     queryString: "",
     response: null
   };
@@ -31,11 +35,17 @@ class App extends Component {
     );
   };
 
-  // Wrapped performQuery in debounce
   performQuery = debounce(queryString => {
+    // Assigning a requestId tp each new request
+    const requestId = ++this.requestSequence;
+
     client.search(queryString, {}).then(
       response => {
+        // Early exit check to avoid rendering old responses
+        if (requestId < this.state.lastCompleted) return;
         this.setState({
+          // Storing the last completed requestId
+          lastCompleted: requestId,
           response
         });
       },

@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { debounce } from "lodash"; // Imported debounce
 import * as SwiftypeAppSearch from "swiftype-app-search-javascript";
 import "./App.css";
 
@@ -10,32 +11,28 @@ const client = SwiftypeAppSearch.createClient({
 
 class App extends Component {
   state = {
-    /* A new state property, which tracks value from the search
-     box */
     queryString: "",
     response: null
   };
 
   componentDidMount() {
-    // Remove hard-coded search for "node"
     this.performQuery(this.state.queryString);
   }
 
-  /* Handles the `onChange` event every time the user types in
-   the search box. */
   updateQuery = e => {
     const queryString = e.target.value;
     this.setState(
       {
-        queryString // Save the user entered query string
+        queryString
       },
       () => {
-        this.performQuery(queryString); // Trigger a new search
+        this.performQuery(queryString);
       }
     );
   };
 
-  performQuery = queryString => {
+  // Wrapped performQuery in debounce
+  performQuery = debounce(queryString => {
     client.search(queryString, {}).then(
       response => {
         this.setState({
@@ -46,7 +43,7 @@ class App extends Component {
         console.log(`error: ${error}`);
       }
     );
-  };
+  }, 200);
 
   render() {
     const { response, queryString } = this.state;
@@ -57,7 +54,6 @@ class App extends Component {
         <header className="App-header">
           <h1 className="App-title">Node Module Search</h1>
         </header>
-        {/* A search box, connected to our query string value and onChange handler */}
         <input
           className="App-search-box"
           type="text"
